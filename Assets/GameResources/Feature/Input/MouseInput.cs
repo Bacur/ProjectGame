@@ -22,54 +22,54 @@
 
 		public void Tick()
 		{
-			if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
+			if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
 			{
-				IClickableObject[] clickables = GetMouseObjectClick(out Vector3 point);
-
-				foreach (IClickableObject clickable in clickables)
+				IClickableObject clickable = GetMouseObjectClick(out Vector3 point);
+				
+				if (clickable is IInteractableObject interactableObject)
 				{
-					if (clickable is IInteractableObject interactableObject)
+					OnInteractableObjectClick?.Invoke(interactableObject);
+				}
+				else if (clickable is IUnit unit)
+				{
+					if (Input.GetMouseButtonDown(0))
 					{
-						OnInteractableObjectClick?.Invoke(interactableObject);
+						OnUnitLeftClick?.Invoke(unit);
 					}
-					else if (clickable is IUnit unit)
+					else if (Input.GetMouseButtonDown(1))
 					{
-						if (Input.GetMouseButton(0))
-						{
-							OnUnitLeftClick?.Invoke(unit);
-						}
-						else if (Input.GetMouseButton(1))
-						{
-							OnUnitRightClick?.Invoke(unit);
-						}
-					}
-					else
-					{
-						OnEnvironmentClick?.Invoke(point);
+						OnUnitRightClick?.Invoke(unit);
 					}
 				}
-				if (Input.GetMouseButton(0))
+				else
+				{
+					OnEnvironmentClick?.Invoke(point);
+				}
+
+				if (Input.GetMouseButtonDown(0))
 				{
 					OnLeftClick?.Invoke();
 				}
-				else if (Input.GetMouseButton(1))
+				else if (Input.GetMouseButtonDown(1))
 				{
 					OnRightClick?.Invoke();
 				}
 			}
 		}
 
-		private IClickableObject[] GetMouseObjectClick(out Vector3 ClcikPosition) 
+		private IClickableObject GetMouseObjectClick(out Vector3 ClcikPosition) 
 		{
 			RaycastHit hit;
 			Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit);
 			ClcikPosition = hit.point;
-			IClickableObject[] clickableObject = hit.collider.GetComponents<IClickableObject>();
 
-
-			if (clickableObject.Length > 0)
+			if (hit.collider.TryGetComponent(out IClickableObject clickable))
 			{
-				return clickableObject;
+				return clickable;
+			}
+			else if (hit.collider.transform.parent !=null && hit.collider.transform.parent.gameObject.TryGetComponent(out IClickableObject clickableParent))
+			{
+				return clickableParent;
 			}
 			else
 			{

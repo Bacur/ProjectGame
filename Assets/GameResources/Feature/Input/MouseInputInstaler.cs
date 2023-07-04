@@ -10,7 +10,7 @@
 	{
 		public override void InstallBindings()
 		{
-			Container.BindInterfacesTo<MouseInput>().AsSingle().NonLazy();			
+			Container.BindInterfacesTo<MouseInput>().AsSingle();			
 		}
 	}
 }
